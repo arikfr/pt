@@ -16,7 +16,7 @@ class PT::UI
     @project = @client.get_project(@local_config[:project_id])
     command = args[0].to_sym rescue :my_work
     params = args[1..-1]
-    commands.include?(command.to_sym) ? send(command.to_sym) : help(command)
+    commands.include?(command.to_sym) ? (params.nil? ? send(command.to_sym) : send(command.to_sym, params.first)) : help(command)
   end
 
   def my_work
@@ -162,11 +162,15 @@ class PT::UI
     end
   end
 
-  def show
-    title("Tasks for #{user_s} in #{project_to_s}")
+  def show(task_row=nil)
     tasks = @client.get_my_work(@project, @local_config[:user_name])
     table = PT::TasksTable.new(tasks)
-    task = select("Please select a story to show", table)
+    if task_row.nil?
+      title("Tasks for #{user_s} in #{project_to_s}")
+      task = select("Please select a story to show", table)
+    else
+      task = table[task_row]
+    end
     result = show_task(task)
   end
 
